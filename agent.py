@@ -1,5 +1,4 @@
 import logging
-
 from dotenv import load_dotenv
 from livekit.agents import (
     AutoSubscribe,
@@ -10,7 +9,7 @@ from livekit.agents import (
     llm,
 )
 from livekit.agents.pipeline import VoicePipelineAgent
-from livekit.plugins import openai, deepgram, silero
+from livekit.plugins import openai, deepgram, silero , cartesia
 from custom_tts import CustomTTS
 
 
@@ -29,18 +28,20 @@ async def entrypoint(ctx: JobContext):
             "You are a voice assistant created by LiveKit. Your interface with users will be voice. "
             "You should use short and concise responses, and avoiding usage of unpronouncable punctuation. "
             "You were created as a demo to showcase the capabilities of LiveKit's agents framework."
+            "you are a voice assistant for a call center and you are here to help the customer with their queries whenever the user say something for which the intent is greet, than only predict/write one word response and that is 'greetings.wav'"
         ),
     )
 
     logger.info(f"connecting to room {ctx.room.name}")
     await ctx.connect(auto_subscribe=AutoSubscribe.AUDIO_ONLY)
 
+
     # Wait for the first participant to connect
     participant = await ctx.wait_for_participant()
     logger.info(f"starting voice assistant for participant {participant.identity}")
 
     # Initialize custom TTS with your audio files path
-    custom_tts = CustomTTS(r'C:\AI\new journey\the fastest journey\phone_calling_the_24hr_project\app\Backend\Voice_files')
+    #custom_tts = CustomTTS(r'C:\Audio_voices')
 
     # This project is configured to use Deepgram STT, OpenAI LLM and TTS plugins
     # Other great providers exist like Cartesia and ElevenLabs
@@ -50,7 +51,8 @@ async def entrypoint(ctx: JobContext):
         vad=ctx.proc.userdata["vad"],
         stt=openai.STT.with_groq(),
         llm=openai.LLM.with_groq(model="llama3-8b-8192"),
-        tts=custom_tts,  # Use our custom TTS
+        # tts=custom_tts,  # Use our custom TTS
+        tts=cartesia.TTS(),
         chat_ctx=initial_ctx,
     )
 
